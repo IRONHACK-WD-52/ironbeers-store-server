@@ -19,5 +19,8 @@ app.use("/", userRouter);
 const productRouter = require("./routes/product.routes");
 app.use("/", productRouter);
 
+const transactionRouter = require("./routes/transaction.routes");
+app.use("/", transactionRouter);
+
 // Inicia o servidor para escutar requisições HTTP na porta 4000
 app.listen(PORT, () => console.log(`Server up and running at port ${PORT}`));

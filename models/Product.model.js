@@ -14,6 +14,7 @@ const ProductSchema = mongoose.Schema({
   qtt_in_stock: { type: Number, required: true },
   volume: { type: Number, required: true },
   expire_date: { type: Date, required: true },
+  transactions: [{ type: mongoose.Schema.Types.ObjectId, ref: "Transaction" }],
 });
 
 module.exports = mongoose.model("Product", ProductSchema);

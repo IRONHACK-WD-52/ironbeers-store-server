@@ -18,6 +18,7 @@ const UserSchema = new mongoose.Schema({
     stateOrProvince: { type: String, required: true, trim: true },
     country: { type: String, required: true, trim: true },
   },
+  transactions: [{ type: mongoose.Schema.Types.ObjectId, ref: "Transaction" }],
 });
 
 module.exports = mongoose.model("User", UserSchema);

@@ -29,7 +29,10 @@ router.get("/user/:id", async (req, res) => {
     const { id } = req.params;
 
     // Buscar o usuário no banco pelo id
-    const result = await UserModel.findOne({ _id: id });
+    const result = await UserModel.findOne({ _id: id }).populate({
+      path: "transactions",
+      model: "Transaction",
+    });
 
     console.log(result);
 
