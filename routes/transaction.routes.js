@@ -1,4 +1,6 @@
 const router = require("express").Router();
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+
 const TransactionModel = require("../models/Transaction.model");
 const UserModel = require("../models/User.model");
 const ProductModel = require("../models/Product.model");
@@ -16,6 +18,15 @@ router.post("/transaction", async (req, res) => {
         return res.status(403).json({ msg: "Not enough quantity in stock" });
       }
     }
+
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: 1000,
+      currency: "usd",
+      payment_method_types: ["card"],
+      receipt_email: "jenny.rosen@example.com",
+    });
+
+    console.log(paymentIntent);
 
     // Criar a transação
     const result = await TransactionModel.create(req.body);
