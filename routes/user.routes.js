@@ -1,6 +1,10 @@
 const router = require("express").Router();
-const UserModel = require("../models/User.model");
 const bcrypt = require("bcryptjs");
+const UserModel = require("../models/User.model");
+const generateToken = require("../config/jwt.config");
+const isAuthenticated = require("../middlewares/isAuthenticated");
+const attachCurrentUser = require("../middlewares/attachCurrentUser");
+
 const salt_rounds = 10;
 
 // Crud (CREATE) - HTTP POST
@@ -69,7 +73,13 @@ router.post("/login", async (req, res) => {
     // Verificar se a senha do usuário pesquisado bate com a senha recebida pelo formulário
 
     if (await bcrypt.compare(password, user.passwordHash)) {
-      return res.status(200).json({ msg: "Login sucessful!" });
+      return res.status(200).json({
+        user: {
+          email: user.email,
+          name: user.name,
+        },
+        token: generateToken(user),
+      });
     } else {
       // 401 Significa Unauthorized
       return res.status(401).json({ msg: "Wrong password or email" });
@@ -82,31 +92,36 @@ router.post("/login", async (req, res) => {
 
 // cRud (READ) - HTTP GET
 // Buscar dados do usuário
-router.get("/user/:id", async (req, res) => {
-  try {
-    // Extrair o parâmetro de rota para poder filtrar o usuário no banco
+router.get(
+  "/user/:id",
+  isAuthenticated,
+  attachCurrentUser,
+  async (req, res) => {
+    try {
+      // Extrair o parâmetro de rota para poder filtrar o usuário no banco
 
-    const { id } = req.params;
+      const { id } = req.params;
 
-    // Buscar o usuário no banco pelo id
-    const result = await UserModel.findOne({ _id: id }).populate({
-      path: "transactions",
-      model: "Transaction",
-    });
+      // Buscar o usuário no banco pelo id
+      const result = await UserModel.findOne({ _id: id }).populate({
+        path: "transactions",
+        model: "Transaction",
+      });
 
-    console.log(result);
+      console.log(result);
 
-    if (result) {
-      // Responder o cliente com os dados do usuário. O status 200 significa OK
-      return res.status(200).json(result);
-    } else {
-      return res.status(404).json({ msg: "User not found." });
+      if (result) {
+        // Responder o cliente com os dados do usuário. O status 200 significa OK
+        return res.status(200).json(result);
+      } else {
+        return res.status(404).json({ msg: "User not found." });
+      }
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ msg: JSON.stringify(err) });
     }
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ msg: JSON.stringify(err) });
   }
-});
+);
 
 // crUd (UPDATE) - HTTP PUT/PATCH
 // Atualizar um usuário
