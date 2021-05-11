@@ -8,6 +8,9 @@ const ProductModel = require("../models/Product.model");
 // Criar uma nova transação (compra)
 router.post("/transaction", async (req, res) => {
   try {
+    // Array para segurar dados dos produtos
+    const line_items = [];
+
     // Antes de liberar a venda, verifica se tem quantidade em estoque
     for (let product of req.body.products) {
       const foundProduct = await ProductModel.findOne({
@@ -15,18 +18,36 @@ router.post("/transaction", async (req, res) => {
       });
 
       if (product.qtt > foundProduct.qtt_in_stock) {
-        return res.status(403).json({ msg: "Not enough quantity in stock" });
+        return res
+          .status(403)
+          .json({
+            msg: `Not enough quantity in stock for the product ${foundProduct.name}`,
+          });
       }
+
+      // Esse formato de objeto é o formato requerido pela API do Stripe
+      line_items.push({
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: foundProduct.name,
+            images: [foundProduct.image_url],
+          },
+          unit_amount: foundProduct.price * 100,
+        },
+        quantity: product.qtt,
+      });
     }
 
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: 1000,
-      currency: "usd",
+    const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
-      receipt_email: "jenny.rosen@example.com",
+      line_items: [...line_items],
+      mode: "payment",
+      success_url: `${YOUR_DOMAIN}?success=true`,
+      cancel_url: `${YOUR_DOMAIN}?canceled=true`,
     });
 
-    console.log(paymentIntent);
+    console.log(session);
 
     // Criar a transação
     const result = await TransactionModel.create(req.body);
