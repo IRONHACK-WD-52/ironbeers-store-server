@@ -15,7 +15,7 @@ router.post("/product", async (req, res) => {
 
     // Salva os dados de usuário no banco de dados (MongoDB) usando o body da requisição como parâmetro
     const result = await ProductModel.create(req.body);
-
+    console.log("this is the result and req.body", result, req);
     // Responder o usuário recém-criado no banco para o cliente (solicitante). O status 201 significa Created
     return res.status(201).json(result);
   } catch (err) {

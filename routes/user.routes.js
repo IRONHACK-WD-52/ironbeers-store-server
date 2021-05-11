@@ -1,14 +1,11 @@
 const router = require("express").Router();
-const bcrypt = require("bcryptjs");
 const UserModel = require("../models/User.model");
-const generateToken = require("../config/jwt.config");
-const isAuthenticated = require("../middlewares/isAuthenticated");
-const attachCurrentUser = require("../middlewares/attachCurrentUser");
-
+const bcrypt = require("bcryptjs");
 const salt_rounds = 10;
 
 // Crud (CREATE) - HTTP POST
 // Criar um novo usuário
+
 router.post("/signup", async (req, res) => {
   // Requisições do tipo POST tem uma propriedade especial chamada body, que carrega a informação enviada pelo cliente
   console.log(req.body);
@@ -26,8 +23,7 @@ router.post("/signup", async (req, res) => {
     ) {
       // O código 400 significa Bad Request
       return res.status(400).json({
-        msg:
-          "Password is required and must have at least 8 characters, uppercase and lowercase letters, numbers and special characters.",
+        msg: "Password is required and must have at least 8 characters, uppercase and lowercase letters, numbers and special characters.",
       });
     }
 
@@ -73,13 +69,7 @@ router.post("/login", async (req, res) => {
     // Verificar se a senha do usuário pesquisado bate com a senha recebida pelo formulário
 
     if (await bcrypt.compare(password, user.passwordHash)) {
-      return res.status(200).json({
-        user: {
-          email: user.email,
-          name: user.name,
-        },
-        token: generateToken(user),
-      });
+      return res.status(200).json({ msg: "Login sucessful!" });
     } else {
       // 401 Significa Unauthorized
       return res.status(401).json({ msg: "Wrong password or email" });
@@ -92,36 +82,31 @@ router.post("/login", async (req, res) => {
 
 // cRud (READ) - HTTP GET
 // Buscar dados do usuário
-router.get(
-  "/user/:id",
-  isAuthenticated,
-  attachCurrentUser,
-  async (req, res) => {
-    try {
-      // Extrair o parâmetro de rota para poder filtrar o usuário no banco
+router.get("/user/:id", async (req, res) => {
+  try {
+    // Extrair o parâmetro de rota para poder filtrar o usuário no banco
 
-      const { id } = req.params;
+    const { id } = req.params;
 
-      // Buscar o usuário no banco pelo id
-      const result = await UserModel.findOne({ _id: id }).populate({
-        path: "transactions",
-        model: "Transaction",
-      });
+    // Buscar o usuário no banco pelo id
+    const result = await UserModel.findOne({ _id: id }).populate({
+      path: "transactions",
+      model: "Transaction",
+    });
 
-      console.log(result);
+    console.log(result);
 
-      if (result) {
-        // Responder o cliente com os dados do usuário. O status 200 significa OK
-        return res.status(200).json(result);
-      } else {
-        return res.status(404).json({ msg: "User not found." });
-      }
-    } catch (err) {
-      console.error(err);
-      return res.status(500).json({ msg: JSON.stringify(err) });
+    if (result) {
+      // Responder o cliente com os dados do usuário. O status 200 significa OK
+      return res.status(200).json(result);
+    } else {
+      return res.status(404).json({ msg: "User not found." });
     }
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ msg: JSON.stringify(err) });
   }
-);
+});
 
 // crUd (UPDATE) - HTTP PUT/PATCH
 // Atualizar um usuário
