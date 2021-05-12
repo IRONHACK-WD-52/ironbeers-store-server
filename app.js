@@ -7,7 +7,6 @@ const cors = require("cors");
 const PORT = 4000;
 
 const app = express();
-const cors = require("cors");
 
 // Importando as configurações do banco de dados e inicializando a conexão
 const db = require("./config/db.config");

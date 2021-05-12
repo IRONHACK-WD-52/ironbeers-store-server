@@ -7,7 +7,9 @@ const ProductModel = require("../models/Product.model");
 
 router.post("/create-checkout-session", async (req, res) => {
   try {
-    console.log(req.body);
+    // Array para segurar dados dos produtos
+    const line_items = [];
+
     for (let product of req.body.products) {
       const foundProduct = await ProductModel.findOne({
         _id: product.productId,
@@ -19,8 +21,6 @@ router.post("/create-checkout-session", async (req, res) => {
         });
       }
 
-      // Array para segurar dados dos produtos
-      const line_items = [];
       // Esse formato de objeto é o formato requerido pela API do Stripe
       line_items.push({
         price_data: {
@@ -45,6 +45,7 @@ router.post("/create-checkout-session", async (req, res) => {
 
     return res.status(201).json({ id: session.id });
   } catch (err) {
+    console.error(err);
     return res.status(500).json({ msg: JSON.stringify(err) });
   }
 });
@@ -116,8 +117,6 @@ router.post("/transaction", async (req, res) => {
       { $push: { transactions: result._id } }
     );
 
-    // console.log(updatedUser);
-
     // Atualizar as transações de cada produto
 
     for (let product of req.body.products) {
@@ -150,8 +149,6 @@ router.get("/transaction/:id", async (req, res) => {
       path: "products.productId",
       model: "Product",
     });
-
-    console.log(result);
 
     return res.status(200).json(result);
   } catch (err) {

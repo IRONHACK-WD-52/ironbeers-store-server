@@ -13,7 +13,6 @@ const salt_rounds = 10;
 
 router.post("/signup", async (req, res) => {
   // Requisições do tipo POST tem uma propriedade especial chamada body, que carrega a informação enviada pelo cliente
-  console.log(req.body);
 
   try {
     // Recuperar a senha que está vindo do corpo da requisição
@@ -62,8 +61,6 @@ router.post("/login", async (req, res) => {
     // Pesquisar esse usuário no banco pelo email
     const user = await UserModel.findOne({ email });
 
-    console.log(user);
-
     // Se o usuário não foi encontrado, significa que ele não é cadastrado
     if (!user) {
       return res
@@ -94,8 +91,6 @@ router.post("/login", async (req, res) => {
 // cRud (READ) - HTTP GET
 // Buscar dados do usuário
 router.get("/profile", isAuthenticated, attachCurrentUser, (req, res) => {
-  console.log(req.headers);
-
   try {
     // Buscar o usuário logado que está disponível através do middleware attachCurrentUser
     const loggedInUser = req.currentUser;
@@ -126,8 +121,6 @@ router.put("/user/:id", async (req, res) => {
       { new: true }
     );
 
-    console.log(result);
-
     // Caso a busca não tenha encontrado resultados, retorne 404
     if (!result) {
       return res.status(404).json({ msg: "User not found." });
@@ -150,8 +143,6 @@ router.delete("/user/:id", async (req, res) => {
 
     // Deletar o usuário no banco
     const result = await UserModel.deleteOne({ _id: id });
-
-    console.log(result);
 
     // Caso a busca não tenha encontrado resultados, retorne 404
     if (result.n === 0) {

@@ -5,7 +5,6 @@ const ProductModel = require("../models/Product.model");
 // Criar um novo usuário
 router.post("/product", async (req, res) => {
   // Requisições do tipo POST tem uma propriedade especial chamada body, que carrega a informação enviada pelo cliente
-  console.log(req.body);
 
   try {
     // Tira a propriedade image_url do objeto caso ela tenha um valor falso, para acionar o filtro de default value do Mongoose
@@ -15,7 +14,7 @@ router.post("/product", async (req, res) => {
 
     // Salva os dados de usuário no banco de dados (MongoDB) usando o body da requisição como parâmetro
     const result = await ProductModel.create(req.body);
-    console.log("this is the result and req.body", result, req);
+
     // Responder o usuário recém-criado no banco para o cliente (solicitante). O status 201 significa Created
     return res.status(201).json(result);
   } catch (err) {
@@ -31,8 +30,6 @@ router.get("/product", async (req, res) => {
   try {
     // Buscar o usuário no banco pelo id
     const result = await ProductModel.find();
-
-    console.log(result);
 
     if (result) {
       // Responder o cliente com os dados do usuário. O status 200 significa OK
@@ -60,8 +57,6 @@ router.get("/product/:id", async (req, res) => {
       model: "Transaction",
     });
 
-    console.log(result);
-
     if (result) {
       // Responder o cliente com os dados do usuário. O status 200 significa OK
       return res.status(200).json(result);
@@ -88,8 +83,6 @@ router.put("/product/:id", async (req, res) => {
       { new: true }
     );
 
-    console.log(result);
-
     // Caso a busca não tenha encontrado resultados, retorne 404
     if (!result) {
       return res.status(404).json({ msg: "Product not found." });
@@ -112,8 +105,6 @@ router.delete("/product/:id", async (req, res) => {
 
     // Deletar o usuário no banco
     const result = await ProductModel.deleteOne({ _id: id });
-
-    console.log(result);
 
     // Caso a busca não tenha encontrado resultados, retorne 404
     if (result.n === 0) {
