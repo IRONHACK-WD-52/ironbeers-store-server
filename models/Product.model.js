@@ -7,7 +7,7 @@ const ProductSchema = mongoose.Schema({
   description: { type: String, maxlength: 500 },
   image_url: { type: String, default: "https://images.punkapi.com/v2/keg.png" },
   abv: { type: Number, required: true },
-  food_pairing: [String],
+  food_pairing: [{ type: String, trim: true }],
   contributed_by: String,
   cost: { type: Number, required: true },
   price: { type: Number, required: true },

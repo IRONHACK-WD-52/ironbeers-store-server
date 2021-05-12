@@ -11,6 +11,12 @@ const UserSchema = new mongoose.Schema({
   },
   passwordHash: { type: String, required: true },
   phoneNumber: { type: String, required: true, trim: true },
+  role: {
+    type: String,
+    enum: ["ADMIN", "CONSUMER"],
+    required: true,
+    default: "CONSUMER",
+  },
   address: {
     street: { type: String, required: true, trim: true },
     neighbourhood: { type: String, required: true, trim: true },

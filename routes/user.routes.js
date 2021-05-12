@@ -27,8 +27,7 @@ router.post("/signup", async (req, res) => {
     ) {
       // O código 400 significa Bad Request
       return res.status(400).json({
-        msg:
-          "Password is required and must have at least 8 characters, uppercase and lowercase letters, numbers and special characters.",
+        msg: "Password is required and must have at least 8 characters, uppercase and lowercase letters, numbers and special characters.",
       });
     }
 
@@ -78,7 +77,12 @@ router.post("/login", async (req, res) => {
       const token = generateToken(user);
 
       return res.status(200).json({
-        user: { name: user.name, email: user.email, _id: user._id },
+        user: {
+          name: user.name,
+          email: user.email,
+          _id: user._id,
+          role: user.role,
+        },
         token,
       });
     } else {
