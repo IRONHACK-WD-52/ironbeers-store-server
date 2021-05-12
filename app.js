@@ -1,5 +1,8 @@
+// Configurando o servidor para ter acesso às variáveis de ambiente do sistema operacional
 require("dotenv").config();
+
 const express = require("express");
+const cors = require("cors");
 
 const PORT = 4000;
 
