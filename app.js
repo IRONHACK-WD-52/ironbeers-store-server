@@ -1,9 +1,10 @@
 require("dotenv").config();
 const express = require("express");
 
-const PORT = 5700;
+const PORT = 4000;
 
 const app = express();
+const cors = require("cors");
 
 // Importando as configurações do banco de dados e inicializando a conexão
 const db = require("./config/db.config");
@@ -11,6 +12,9 @@ db();
 
 // Configurar o express para entender requisições contendo JSON no corpo
 app.use(express.json());
+
+// Configurar o CORS (Cross-Origin-Resource-Sharing) para permitir que o nosso cliente React acesse este servidor de um domínio diferente
+app.use(cors({ origin: process.env.CLIENT_URL }));
 
 // Importa e configura nossas rotas
 const userRouter = require("./routes/user.routes");
