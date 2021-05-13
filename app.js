@@ -4,8 +4,6 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 
-const PORT = 4000;
-
 const app = express();
 
 // Importando as configurações do banco de dados e inicializando a conexão
@@ -16,7 +14,7 @@ db();
 app.use(express.json());
 
 // Configurar o CORS (Cross-Origin-Resource-Sharing) para permitir que o nosso cliente React acesse este servidor de um domínio diferente
-app.use(cors({ origin: "http://localhost:3000" }));
+app.use(cors({ origin: process.env.REACT_APP_URL }));
 
 // Importa e configura nossas rotas
 const userRouter = require("./routes/user.routes");
@@ -30,4 +28,6 @@ const transactionRouter = require("./routes/transaction.routes");
 app.use("/", transactionRouter);
 
 // Inicia o servidor para escutar requisições HTTP na porta 4000
-app.listen(PORT, () => console.log(`Server up and running at port ${PORT}`));
+app.listen(Number(process.env.PORT), () =>
+  console.log(`Server up and running at port ${process.env.PORT}`)
+);

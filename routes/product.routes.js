@@ -1,4 +1,5 @@
 const router = require("express").Router();
+const moment = require("moment");
 const ProductModel = require("../models/Product.model");
 const isAuthenticated = require("../middlewares/isAuthenticated");
 const attachCurrentUser = require("../middlewares/attachCurrentUser");
@@ -96,7 +97,12 @@ router.get("/product/:id", async (req, res) => {
 
     if (result) {
       // Responder o cliente com os dados do usuário. O status 200 significa OK
-      return res.status(200).json(result);
+      return res
+        .status(200)
+        .json({
+          ...result.toObject(),
+          expire_date: moment(result.expire_date).format("yyyy-MM-DD"),
+        });
     } else {
       return res.status(404).json({ msg: "Product not found." });
     }

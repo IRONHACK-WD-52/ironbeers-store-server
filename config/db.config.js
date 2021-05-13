@@ -1,10 +1,8 @@
 const mongoose = require("mongoose");
 
-const DB_NAME = "ironbeers-store";
-
 async function db() {
   try {
-    const db = await mongoose.connect(`mongodb://localhost:27017/${DB_NAME}`, {
+    const db = await mongoose.connect(process.env.MONGODB_URI, {
       useCreateIndex: true,
       useNewUrlParser: true,
       useUnifiedTopology: true,
