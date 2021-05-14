@@ -1,10 +1,13 @@
 const router = require("express").Router();
 const bcrypt = require("bcryptjs");
+const { v4: uuidv4 } = require("uuid");
 
 const UserModel = require("../models/User.model");
+const TokenModel = require("../models/Token.model");
 const generateToken = require("../config/jwt.config");
 const isAuthenticated = require("../middlewares/isAuthenticated");
 const attachCurrentUser = require("../middlewares/attachCurrentUser");
+const mailer = require("../config/nodemailer.config");
 
 const salt_rounds = 10;
 
@@ -110,6 +113,111 @@ router.get("/profile", isAuthenticated, attachCurrentUser, (req, res) => {
     } else {
       return res.status(404).json({ msg: "User not found." });
     }
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ msg: JSON.stringify(err) });
+  }
+});
+
+// Password Reset - Troca de senha segura
+router.post("/forgot-password", async (req, res) => {
+  try {
+    // Verifica se o usuário existe no banco através do e-mail
+
+    const user = await UserModel.findOne({ email: req.body.email });
+
+    if (!user) {
+      return res
+        .status(400)
+        .json({ msg: "This is user is not registered in our application." });
+    }
+
+    // Verifica se existe um token de troca de senha ativo no banco pra esse usuário
+    const token = await TokenModel.findOne({ userId: user._id });
+
+    // Caso exista um token para esse usuário, delete antes de criar um novo
+    if (token) {
+      await TokenModel.deleteOne({ _id: token._id });
+    }
+
+    // Gerar o token de troca de senha e salvar no banco
+    const resetToken = uuidv4();
+
+    await TokenModel.create({ token: resetToken, userId: user._id });
+    // Invalida a senha anterior do usuário para que ninguém mais possa acessar a conta
+    await UserModel.findOneAndUpdate(
+      { _id: user._id },
+      { $set: { passwordHash: uuidv4() } }
+    );
+
+    const passwordResetLink = `${process.env.REACT_APP_URL}/password-reset?token=${resetToken}&userId=${user._id}`;
+
+    await mailer(
+      req.body.email,
+      "Forgot your password to access Ironbeers Store?",
+      `
+      <p>You requested a password reset. Click in the link below to reset your password. If you didn't ask for this, please ignore this e-mail.</p>
+
+      <a href="${passwordResetLink}">Click here to reset you password</a>
+
+      <p>Or copy and paste this into your browser: ${passwordResetLink}</p>
+    `
+    );
+
+    return res.status(200).json({ msg: "OK" });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ msg: JSON.stringify(err) });
+  }
+});
+
+router.post("/password-reset", async (req, res) => {
+  try {
+    const { password, token, userId } = req.body;
+
+    // Verifica se o token enviado pelo usuário é o mesmo token que foi gerado pelo nosso servidor
+    const foundToken = await TokenModel.findOne({ token });
+
+    if (!foundToken) {
+      return res.status(401).json({ msg: "Invalid password reset token." });
+    }
+
+    const user = await UserModel.findOne({ _id: userId });
+
+    if (!user) {
+      return res
+        .status(401)
+        .json({ msg: "This user is not registered in our application." });
+    }
+
+    // Verifica se a senha não está em branco ou se a senha não é complexa o suficiente
+    if (
+      !password ||
+      !password.match(
+        /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$ %^&*-]).{8,}$/
+      )
+    ) {
+      // O código 400 significa Bad Request
+      return res.status(400).json({
+        msg: "Password is required and must have at least 8 characters, uppercase and lowercase letters, numbers and special characters.",
+      });
+    }
+
+    // Gera o salt
+    const salt = await bcrypt.genSalt(salt_rounds);
+
+    // Criptografa a senha
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Atualiza a senha no banco pra este usuário
+    const updatedUser = await UserModel.findOneAndUpdate(
+      { _id: userId },
+      { $set: { passwordHash: hashedPassword } }
+    );
+
+    console.log(updatedUser);
+
+    return res.status(200).json({ msg: "Password reset successful." });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ msg: JSON.stringify(err) });
